@@ -1,0 +1,350 @@
+#!/usr/bin/env python3
+"""Tic-tac-toe game.
+
+__|_______|_______|_______|__
+  |       |       |       |
+  |   O   |       |       |
+__|_______|_______|_______|__
+  |       |       |       |
+  |   X   |   O   |   X   |
+__|_______|_______|_______|__
+  |       |       |       |
+  |       |       |   O   |
+__|_______|_______|_______|__
+  |       |       |       |
+
+Let's see who will pay for the pizzas hehe.
+
+Examples:
+    $ python tic-tac-toe
+"""
+from __future__ import annotations
+
+import random
+
+# Player names.
+PLAYERS = ["o", "x"]
+
+# Defines all known moves. Note that the order is important because we will use
+# it to determine the indexes associated with each move.
+MOVES = ["a1", "b1", "c1", "a2", "b2", "c2", "a3", "b3", "c3"]
+
+# All combinations that allow the victory of a game.
+COMBINATIONS = [
+    ["a1", "b1", "c1"],
+    ["a2", "b2", "c2"],
+    ["a3", "b3", "c3"],
+    ["a1", "a2", "a3"],
+    ["b1", "b2", "b3"],
+    ["c1", "c2", "c3"],
+    ["a1", "b2", "c3"],
+    ["c1", "b2", "a3"],
+]
+
+
+def input_(message):
+    """Input the user."""
+    result = input(message)
+    return str(result).lower()
+
+
+def create_board():
+    """Create a new board."""
+    # Create a list that will store each move of the game.
+    # Note that we initialise the default values with the space character to
+    # keep the board aligned when we display it.
+    #
+    # Tips: `["qwe"] * 3` is the equivalent of `["qwe", "qwe", "qwe"]`, it's
+    # just a simpler way to create a list that has a certain number of times
+    # the same value.
+    return [" "] * len(MOVES)
+
+
+def set_move(board, player, move):
+    """Set a move on the board."""
+    # Use the MOVES constant to find the index of the requested move.
+    index = MOVES.index(move)
+    # Fill the board at the index of the move by the name of the player.
+    board[index] = player.upper()
+
+
+def show_board(board):
+    """Show board in command line."""
+    msg = "\n"
+    msg += "           A       B       C   \n"
+    msg += "     __|_______|_______|_______|__\n"
+    msg += "       |       |       |       |\n"
+    msg += "   1   |   {}   |   {}   |   {}   |\n"
+    msg += "     __|_______|_______|_______|__\n"
+    msg += "       |       |       |       |\n"
+    msg += "   2   |   {}   |   {}   |   {}   |\n"
+    msg += "     __|_______|_______|_______|__\n"
+    msg += "       |       |       |       |\n"
+    msg += "   3   |   {}   |   {}   |   {}   |\n"
+    msg += "     __|_______|_______|_______|__\n"
+    msg += "       |       |       |       |\n"
+    msg = msg.format(
+        board[0],
+        board[1],
+        board[2],
+        board[3],
+        board[4],
+        board[5],
+        board[6],
+        board[7],
+        board[8],
+    )
+    print(msg)
+
+
+def next_player(current):
+    """Pick the next player."""
+    if current == "x":
+        return "o"
+    if current == "o":
+        return "x"
+
+    # As the players are defined by the program, they should never be invalid,
+    # but let's display a message just in case :3
+    print("Invalid player.")
+    return None
+
+
+def start_game():
+    """Start a new game.
+
+    Returns:
+        str: The player who won the game (``o`` or ``x``).
+    """
+    # Create the board.
+    board = create_board()
+
+    # Create two empty lists in which we will record all moves made by each
+    # player. We will use them in order to know if one of the players has a
+    # winning combination or if all possible movements have already been used.
+    moves_o = []
+    moves_x = []
+
+    # Ask if the computer should be used as a second player.
+    while True:
+        result = input_("> Use computer as second player (y/n) [y]: ")
+
+        # If the user enter `y` or keep the field empty (default).
+        if result in ("y", ""):
+            use_computer = True
+            break
+        # If the user reply `n`
+        if result == "n":
+            use_computer = False
+            break
+        # If invalid entry let's ask the user again by continue to the next
+        # iteration.
+        print("Invalid entry.")
+
+    # Ask to the user which player should play first.
+    while True:
+        msg = "> Which player should start (o/x) [random]: "
+        player = input_(msg)
+
+        # If the user has specified something, let's check the value and break
+        # the loop if it is correct.
+        if player in PLAYERS:
+            break
+
+        # In case the user leaves the field empty, chooses a player randomly
+        # (A game in a game *-*).
+        #
+        # The `random` module present in the python standard library allows to
+        # generate random numbers or in our case to choose a random element in
+        # a list.
+        #
+        # More information:
+        # https://www.w3schools.com/python/ref_random_choice.asp
+        # https://www.programiz.com/python-programming/modules/random
+        if player == "":
+            player = random.choice(PLAYERS)
+            break
+
+        # If invalid entry let's ask the user again by continue to the next
+        # iteration.
+        print("Invalid entry.")
+
+    # Now that we have everything we need, let's start the game! :D
+
+    # First if the first player is not the computer display the board.
+    if player == "o" or not use_computer:
+        show_board(board)
+
+    while True:
+        # Define a variable that will be used to know if the board should be
+        # display for the current turn (because we don't want to display it
+        # on computer turns).
+        show = True
+
+        # If it's the computer's turn, use one of the available moves randomly.
+        if use_computer and player == "x":
+            # The easiest way to find it is to use set. A set is a python
+            # object close to a list that allows to easily compare the items
+            # they contain and for example to retain only the items present in
+            # both sets. In our case, we will use them to retain only the
+            # available moves among all those possible.
+            #
+            # More information:
+            # https://www.programiz.com/python-programming/set
+            # https://www.programiz.com/python-programming/methods/set/symmetric_difference
+            available = set(MOVES) ^ set(moves_o) ^ set(moves_x)
+
+            # And finally, use the random module to choose one of these moves.
+            move = random.choice(list(available))
+
+        else:
+            # Ask the user what move he/she wants to perform.
+            msg = "> Enter a move (Player {}): "
+            move = input_(msg.format(player.upper()))
+
+            if use_computer:
+                show = False
+
+            # Check that the entry is valid and if not, ask the user again.
+            if move not in MOVES:
+                print("Invalid move.")
+                # The keyword `continue` allows to go directly to the next
+                # iteration without executing the rest of the block.
+                #
+                # More information:
+                # https://www.programiz.com/python-programming/break-continue
+                continue
+
+            # Make sure the move is available by combining both players move
+            # lists and check that the requested move is not already in that
+            # list.
+            if move in moves_o + moves_x:
+                print("Move not available.")
+                continue
+
+        # Update the board and show it.
+        set_move(board, player, move)
+        if show:
+            show_board(board)
+
+        # Register the last move.
+        player_moves = moves_o if player == "o" else moves_x
+        player_moves.append(move)
+
+        # Check if there is a winner.
+        for each in COMBINATIONS:
+            # The easiest way to check this is once again to use the sets.
+            # In this case we will use them to check if all elements of a set
+            # are present in another set. In other words, we will see if any of
+            # the winning combinations are present in the player's moves.
+            #
+            # More information:
+            # https://www.programiz.com/python-programming/set
+            # https://www.programiz.com/python-programming/methods/set/issubset
+            if set(each).issubset(player_moves):
+                # Show the final board if it has not already been done.
+                if not show:
+                    show_board(board)
+                msg = "Congratulations, the player {} has won the game! :)"
+                print(msg.format(player.upper()))
+                return player
+
+        # If there are no more available moves, let's end the game.
+        if len(moves_o + moves_x) == len(MOVES):
+            # Show the final board if it has not already been done.
+            if not show:
+                show_board(board)
+            print("No more moves available.")
+            break
+
+        player = next_player(player)
+
+
+def main():
+    """Execute the X/O game."""
+
+    # Keep track of the wins to see who has to pay for the pizzas after the
+    # session. What! 5 rounds!? Didn't we say 3? xD
+    score_o = 0
+    score_x = 0
+
+    # Set up an infinite (but voluntary) loop :s
+    # The idea is to execute each action asked by the user indefinitely until
+    # he/she wants to exit the program.
+    #
+    # At each iteration, we will start by asking the user what actions he/she
+    # want to execute. Each action is then defined in an if/elif/else statement
+    # where each block will contain the code to execute to do what the action
+    # should do action. Once the action has been completed, the process will
+    # continue to the next iteration, and the user will again be asked to enter
+    # an action to execute, and so on.
+    #
+    # To exit the program we will setup an action that will break the loop.
+    # Once out of the loop, the function can be completed and our program can
+    # finally end.
+    while True:
+
+        # Ask the user what he/she wants to do.
+        action = input_("> Enter an action (type 'help' for full list): ")
+
+        # Display a help message with all available actions.
+        if action == "help":
+            msg = "\nActions:\n"
+            msg += "  play        Start a new party.\n"
+            msg += "  score       Show the current scores.\n"
+            msg += "  reset       Reset the scores to 0.\n"
+            msg += "  exit        Exit the game.\n"
+            print(msg)
+
+        # Start a new party!
+        elif action == "play":
+            winner = start_game()
+            if winner == "o":
+                score_o += 1
+            elif winner == "x":
+                score_x += 1
+
+        # Show the the current score.
+        elif action == "score":
+            print(f"O: {score_o}")
+            print(f"X: {score_x}")
+
+            # Find the winning player.
+            if score_o == score_x:
+                print("Perfect equality!")
+            else:
+                winner = "O" if score_o > score_x else "X"
+                print(f"The player {winner} wins for the moment!")
+
+        # Reset the score to 0.
+        elif action == "reset":
+            score_o = 0
+            score_x = 0
+            print("The score was reset to zero.")
+
+        # Exit the program.
+        elif action == "exit":
+            # The break statement allows to terminate the active loop. Once out
+            # of the loop, the return statement of the `main` function will be
+            # executed. The program will exit the main() function and will
+            # execute the rest of the "if __name__ == __name" blok. As there is
+            # nothing left after that, the programme will end.
+            #
+            # More information:
+            # https://www.programiz.com/python-programming/break-continue
+            break
+
+        # Catch the case when the action is not recognized by the program.
+        # Display a message to the user and continue to the next iteration.
+        else:
+            print("Invalid action. Type 'help' for full action list")
+
+    # 0 means that the program has been executed without any error :)
+    # (And also that it's time to eat :D)
+    return 0
+
+
+# Entry point of the program.
+# The code bellow will only be executed if the file is runned directly.
+if __name__ == "__main__":
+    main()
